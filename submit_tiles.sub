@@ -1,0 +1,107 @@
+# This is a HTCondor submit process.
+#
+# The user needs to enter the following parameters according to their processing needs:
+# tilePrefix		Prefix used to name each ZIP file containing your LAZ tiles. If the mosaic_to_new_raster.py script was used, you do not need to change this.
+# areaOfInterest 	Name used to label each output DTM,DSM, and/or intensity file. For example, if processing an entire county, enter the county name.
+# bufferSize		Buffer dimension around each LAZ to prevent gaps. 200 is recommended.
+# lasPathname		Directory containing your ZIP files. If the mosaic_to_new_raster.py script was used, you do not need to change this.
+# targetProjection	Update the process_laz_files_buff.py script with the appropriate flag for the LASProject tool for your desired output coordinate system.
+#					Refer to http://www.cs.unc.edu/~isenburg/lastools/download/las2las_README.txt for more information specifiying this parameter.
+# scriptName		Processing script to be run on Condor node.
+
+tilePrefix = tile_
+areaOfInterest = Test
+bufferSize = 200
+lasPathname = split_data
+scriptName = process_laz_files_buff.py
+
+#################################################################################################################
+# 
+# Don't modify anything below this line....
+# 
+#################################################################################################################
+
+# The "universe" parameter allows you to specify a runtime environment that you want the job to run under.
+# "vanilla" is the default value and usually a safest to use when environment isn't known. The "vanilla" value 
+# doesn't allow a job to be checkpointed or migrated. The job must run to completion on a node or it will need to 
+# be rerun.
+universe                = vanilla
+
+# The "executable" parameter specifys where the execution file resides. In this case we are running the python
+# Interpreter "python.exe".
+executable              = C:\Python27\ArcGIS10.5\python.exe
+
+# The "transfer_executable" parameter allows you to transfer the program you want to run to the Condor node where 
+# the job will run. For this process we specify "FALSE" because we expect the "python.exe" file to reside on every 
+# node and at the exact path specified in the "executable" parameter on every node we submit this job to.
+transfer_executable     = FALSE
+
+# The "requirements" parameter allows you to specify what type of machine architecture and OS the program will run 
+# under. We also created a flag called "HAS_ARCGIS" that allows you to say you only want machines with ArcGIS Desktop 
+# installed to be eligbible for selection.
+requirements = Arch=="X86_64" && OpSys=="WINDOWS" && HAS_ARCGIS && \
+        (Machine == "COOP406-0.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-01.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-02.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-03.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-04.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-05.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-06.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-07.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-08.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-09.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-10.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-11.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-12.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-13.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-14.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-15.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-16.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-17.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-18.CAMPUS.CU.CLEMSON.EDU") || \ 
+        (Machine == "COOP406-19.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP406-20.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-01.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-02.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-03.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-04.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-05.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-06.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-07.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-08.CAMPUS.CU.CLEMSON.EDU") || \ 
+        (Machine == "COOP412-09.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-10.CAMPUS.CU.CLEMSON.EDU") || \
+        (Machine == "COOP412-11.CAMPUS.CU.CLEMSON.EDU")
+#dirname = $Fn(filename)
+#index = $SUBSTR(dirname,0,-4)
+
+# The "arguments" parameter says what arguments you want to pass to the executable file. 
+# since the executable file is the python interpreter we need to pass, as one of the arguments, the python script
+# we want to run. The arguments after the python script name are arguments for the python script itself.
+arguments               = $(scriptName) $(areaOfInterest) $(bufferSize) $(targetProjection) $(lastoolsPath)
+
+# The "transfer_input_files" parameter allows you to specify other addition files to be transferred to the node that 
+# might be needed to run the job successfully.
+transfer_input_files    = $(scriptName),$(filename)
+
+# The "should_transfer_files" parameter allows you to state you want all files specified on the "transfer_input_files"
+# parameter to be sent to the remote node. 
+should_transfer_files   = YES
+
+# The "when_to_transfer_output" parameter says you want to transfer any files, that were created on the remote node, 
+# back to the submit machine after the job is completed.
+when_to_transfer_output = ON_EXIT
+
+# The "initialdir" parameter states the path where the input files will be found. In this case the path is relative
+# to the directory from where the submit process file was submitted. 
+#initialdir              = area_of_solar_radiation
+
+# The "output", "error", and "log" parameters specify the path, on the submitting machinge, where the logs will be created 
+# and updated. In this case it's relative to the submit process file path.
+output = logs/output-$Fn(filename).txt
+error  = logs/error-$Fn(filename).txt
+log    = logs/log.txt
+
+# The Queue command initiates the submission to the remote nodes. In this case we're going
+# to submit a Condor job for each filename that matches the pattern $(polylineFCPrefix)*.gdb.zip
+queue filename matching files $(lasPathname)\$(tilePrefix)*.zip
